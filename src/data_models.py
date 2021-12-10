@@ -11,7 +11,6 @@ class SNLI(torch.utils.data.Dataset):
 
         self.max_length = max_length
 
-        print(fname)
         f = h5py.File(fname, 'r')
         self.source = torch.from_numpy(np.asarray(f['source'])) - 1
         self.target = torch.from_numpy(np.asarray(f['target'])) - 1
@@ -31,11 +30,13 @@ class SNLI(torch.utils.data.Dataset):
 
         source_len = min(self.source_l[idx], self.max_length)
         target_len = min(self.target_l[idx], self.max_length)
+        #source_len = self.source_l[idx]
+        #target_len = self.target_l[idx]
 
         batch = {
             'source': self.source[self.batch_idx[idx]:self.batch_idx[idx] + self.batch_l[idx]][:, :source_len],
             'target': self.target[self.batch_idx[idx]:self.batch_idx[idx] + self.batch_l[idx]][:, :target_len],
-            'labels': self.label[self.batch_idx[idx]:self.batch_idx[idx] + self.batch_l[idx]]
+            'labels': self.label[self.batch_idx[idx]:self.batch_idx[idx] + self.batch_l[idx]][:source_len]
         }
 
         return batch

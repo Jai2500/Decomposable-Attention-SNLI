@@ -55,7 +55,7 @@ class LitModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         source, target, labels = batch['source'], batch['target'], batch['labels']
         log_prob = self(source, target)
-        labels = labels[0]
+        labels = labels[0][:1]
         loss = self.criterion(log_prob, labels)
         self.log("Train Loss", loss.item(), prog_bar=True)
 
@@ -88,7 +88,7 @@ class LitModel(pl.LightningModule):
         shrinkage = self.max_grad_norm / grad_norm
         if shrinkage < 1:
             for m in self.encoder.modules():
-                if isinstance(m, torch.nn.Linear()):
+                if isinstance(m, torch.nn.Linear):
                     m.weight.grad.data = m.weight.grad.data * shrinkage
             for m in self.atten.modules():
                 if isinstance(m, torch.nn.Linear):
@@ -96,13 +96,17 @@ class LitModel(pl.LightningModule):
                     m.bias.grad.data = m.bias.grad.data * shrinkage
 
     def validation_step(self, batch, batch_idx):
-        source, target, labels = batch['source'], batch['target'], batch['labels']
-        labels = labels[0]
-        log_prob = self(source, target)
-        loss = self.criterion(log_prob, labels)
-        self.log("Validation Loss", loss.item(), prog_bar=True)
-
-        acc = self.acc(torch.exp(log_prob), labels)
-        self.log("Validation Accuracy", acc.item(), prog_bar=True)
+        try:
+           source, target, labels = batch['source'], batch['target'], batch['labels']
+           labels = labels[0][:1]
+           log_prob = self(source, target)
+           loss = self.criterion(log_prob, labels)
+           self.log("Validation Loss", loss.item(), prog_bar=True)
+    
+           acc = self.acc(torch.exp(log_prob), labels)
+           self.log("Validation Accuracy", acc.item(), prog_bar=True)
+        except:
+           print("errored here")
+           loss = 0
 
         return loss
