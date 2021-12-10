@@ -1,0 +1,5 @@
+__pycache__
+preprocess/data
+preprocess/processed_data
+*.ckpt
+data
