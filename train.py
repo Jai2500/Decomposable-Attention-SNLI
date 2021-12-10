@@ -5,6 +5,7 @@ import pytorch_lightning as pl
 
 from src.lightning_modules import LitModel, LitSNLI
 from src.models import Atten, Encoder
+from src.data_models import w2v
 
 
 parser = argparse.ArgumentParser()
@@ -41,7 +42,7 @@ datamodule = LitSNLI(
     max_length=args.max_length
 )
 
-word_vecs = src.data.w2v(args.w2v_file).word_vecs
+word_vecs = w2v(args.w2v_file).word_vecs
 
 encoder = Encoder(
     num_embeddings=word_vecs.size(0),
