@@ -90,7 +90,7 @@ class Atten(nn.Module):
 
     def forward(self, sent1_linear, sent2_linear):
         len1 = sent1_linear.size(1)
-        len2 = sent2_linear.size(2)
+        len2 = sent2_linear.size(1)
 
         '''Attend'''
         f1 = self.mlp_f(sent1_linear.view(-1, self.hidden_size))
@@ -99,10 +99,10 @@ class Atten(nn.Module):
         f1 = f1.view(-1, len1, self.hidden_size) # batch_size x len1 x hidden_size
         f2 = f2.view(-1, len2, self.hidden_size) # batch_size x len2 x hidden_size
 
-        score1 = torch.bmm(f1, torch.tranpose(f2, 1, 2)) # e_{ij}
+        score1 = torch.bmm(f1, torch.transpose(f2, 1, 2)) # e_{ij}
         prob1 = torch.nn.functional.softmax(score1.view(-1, len2)).view(-1, len1, len2)
         
-        score2 = torch.tranpose(score1.contiguous(), 1, 2) # e_{ji}
+        score2 = torch.transpose(score1.contiguous(), 1, 2) # e_{ji}
         score2 = score2.contiguous()
         prob2 = torch.nn.functional.softmax(score2.view(-1, len1)).view(-1, len2, len1)
 

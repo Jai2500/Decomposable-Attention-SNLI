@@ -2,8 +2,8 @@ from typing import ForwardRef
 import torch
 import pytorch_lightning as pl
 import torchmetrics
-from data import *
-from models import *
+from src.data_models import *
+from src.models import *
 
 class LitSNLI(pl.LightningDataModule):
     def __init__(self, train_fname, val_fname, test_fname, max_length, train_transforms=None, val_transforms=None, test_transforms=None, dims=None):
@@ -29,12 +29,13 @@ class LitSNLI(pl.LightningDataModule):
     
 class LitModel(pl.LightningModule):
     def __init__(self, encoder, atten, max_grad_norm, lr, optim, weight_decay):
+        super().__init__()
         self.encoder = encoder
         self.atten = atten
         self.criterion = torch.nn.NLLLoss()
         self.acc = torchmetrics.Accuracy()
         
-        self.lr
+        self.lr = lr
         self.optim = optim
         self.weight_decay = weight_decay
 
@@ -95,7 +96,10 @@ class LitModel(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         source, target, labels = batch['source'], batch['target'], batch['labels']
+        labels = labels[0]
         log_prob = self(source, target)
+        print(labels)
+        print(log_prob)
         loss = self.criterion(log_prob, labels)
         self.log("Validation Loss", loss.item(), prog_bar=True)
 
