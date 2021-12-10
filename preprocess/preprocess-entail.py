@@ -40,14 +40,14 @@ class Indexer:
         
     def write(self, outfile):
         out = open(outfile, "w")
-        items = [(v, k) for k, v in self.d.iteritems()]
+        items = [(v, k) for k, v in self.d.items()]
         items.sort()
         for v, k in items:
-            print >>out, k, v                
+            out.write(str(k)+' '+str(v)+"\n")                
         out.close()
 
     def prune_vocab(self, k, cnt=False):
-        vocab_list = [(word, count) for word, count in self.vocab.iteritems()]        
+        vocab_list = [(word, count) for word, count in self.vocab.items()]        
         if cnt:
             self.pruned_vocab = {pair[0]:pair[1] for pair in vocab_list if pair[1] > k}
         else:
@@ -90,7 +90,7 @@ def get_data(args):
     def make_vocab(srcfile, targetfile, labelfile, seqlength):
         num_sents = 0
         for _, (src_orig, targ_orig, label_orig) in \
-                enumerate(itertools.izip(open(srcfile,'r'),
+                enumerate(zip(open(srcfile,'r'),
                                          open(targetfile,'r'), open(labelfile, 'r'))):
             src_orig = word_indexer.clean(src_orig.strip())
             targ_orig = word_indexer.clean(targ_orig.strip())                
@@ -126,7 +126,7 @@ def get_data(args):
         dropped = 0
         sent_id = 0
         for _, (src_orig, targ_orig, label_orig) in \
-                enumerate(itertools.izip(open(srcfile,'r'), open(targetfile,'r')
+                enumerate(zip(open(srcfile,'r'), open(targetfile,'r')
                                          ,open(labelfile,'r'))):
             src_orig = word_indexer.clean(src_orig.strip())
             targ_orig = word_indexer.clean(targ_orig.strip())

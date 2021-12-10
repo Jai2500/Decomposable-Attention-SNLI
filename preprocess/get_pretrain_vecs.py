@@ -10,7 +10,7 @@ def load_glove_vec(fname, vocab):
     for line in open(fname, 'r'):
         d = line.split()
         word = d[0]
-        vec = np.array(map(float, d[1:]))
+        vec = np.array(list(map(float, d[1:])))
 
         if word in vocab:
             word_vecs[word] = vec
@@ -22,13 +22,14 @@ def main():
       formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument('--dictionary', help="*.dict file", type=str,
                       default='data/entail.word.dict')
-  parser.add_argument('--glove', help='pretrained word vectors', type=str, default='')
+  parser.add_argument('--glove', help='pretrained word vectors', type=str, default='/scratch/a9/glove/glove.6B.300d.txt')
   parser.add_argument('--outputfile', help="output hdf5 file", type=str,
-                      default='data/glove.hdf5')
+                      default='../data/glove.hdf5')
   
   args = parser.parse_args()
+  print(args.dictionary)
   vocab = open(args.dictionary, "r").read().split("\n")[:-1]
-  vocab = map(lambda x: (x.split()[0], int(x.split()[1])), vocab)
+  vocab = list(map(lambda x: (x.split()[0], int(x.split()[1])), vocab))
   word2idx = {x[0]: x[1] for x in vocab}
   print("vocab size is " + str(len(vocab)))
   w2v_vecs = np.random.normal(size = (len(vocab), 300))
