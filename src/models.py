@@ -79,7 +79,7 @@ class Encoder(nn.Module):
             sent2_f = self.mlp_f(sent2_linear).view(batch_size, -1, self.hidden_size)
             score2 = torch.bmm(sent2_f, torch.transpose(sent2_f, 1, 2)) # f_{ij}
 
-            distance = torch.zeros(size=(len2, len2)).fill_(self.bias_max)
+            distance = torch.ones(size=(len2, len2)) * self.bias_max
             for i in range(len2):
                 forward_idxs = (torch.arange(10))[:len2 - i]
                 backward_idxs = i - torch.arange(min(i, 10))
