@@ -38,3 +38,9 @@ class SNLI(torch.utils.data.Dataset):
         }
 
         return batch
+
+class w2v(object):
+    def __init__(self, fname) -> None:
+        super().__init__()
+        f = h5py.File(fname)
+        self.word_vecs = torch.from_numpy(np.array(f['word_vecs']))
