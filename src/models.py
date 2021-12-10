@@ -71,7 +71,7 @@ class Encoder(nn.Module):
                 forward_idxs = (torch.arange(10))[:len1 - i]
                 backward_idxs = i - torch.arange(min(i, 10))
                 idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
-                distance[i] = torch.scatter(distance[i], idxs, self.bias_D)
+                distance[i] = torch.scatter(distance[i], 0, idxs, self.bias_D)
 
             prob1 = torch.nn.functional.softmax((score1 + distance).view(-1, len1)).view(-1, len1, len1) 
             sent1_final = torch.bmm(prob1, sent1_linear.view(batch_size, -1, self.hidden_size))
@@ -84,7 +84,7 @@ class Encoder(nn.Module):
                 forward_idxs = (torch.arange(10))[:len2 - i]
                 backward_idxs = i - torch.arange(min(i, 10))
                 idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
-                distance[i] = torch.scatter(distance[i], idxs, self.bias_D)
+                distance[i] = torch.scatter(distance[i], 0, idxs, self.bias_D)
 
             prob2 = torch.nn.functional.softmax((score2 + distance).view(-1, len2)).view(-1, len2, len2) 
             sent2_final = torch.bmm(prob2, sent2_linear.view(batch_size, -1, self.hidden_size))
