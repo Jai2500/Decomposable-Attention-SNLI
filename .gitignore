@@ -3,3 +3,5 @@ preprocess/data
 preprocess/processed_data
 *.ckpt
 data
+lightning_logs
+wandb
