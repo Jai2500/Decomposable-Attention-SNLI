@@ -55,10 +55,11 @@ class LitModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         source, target, labels = batch['source'], batch['target'], batch['labels']
         log_prob = self(source, target)
-        loss = self.criterion(log_prob, labels[0])
+        labels = labels[0]
+        loss = self.criterion(log_prob, labels)
         self.log("Train Loss", loss.item(), prog_bar=True)
 
-        acc = self.acc(torch.exp(log_prob), labels[0])
+        acc = self.acc(torch.exp(log_prob), labels)
         self.log("Train Accuracy", acc.item(), prog_bar=True)
 
         return loss
@@ -98,10 +99,10 @@ class LitModel(pl.LightningModule):
         source, target, labels = batch['source'], batch['target'], batch['labels']
         labels = labels[0]
         log_prob = self(source, target)
-        loss = self.criterion(log_prob, labels[0])
+        loss = self.criterion(log_prob, labels)
         self.log("Validation Loss", loss.item(), prog_bar=True)
 
-        acc = self.acc(torch.exp(log_prob), labels[0])
+        acc = self.acc(torch.exp(log_prob), labels)
         self.log("Validation Accuracy", acc.item(), prog_bar=True)
 
         return loss
