@@ -40,8 +40,8 @@ class Encoder(nn.Module):
 
         if self.intra_sent_atten:
             self.mlp_f = MLP(self.hidden_size, self.hidden_size, param_init)
-            self.bias_D = torch.nn.parameter.Parameter(torch.zeros(size=(10)).normal_(0, param_init))
-            self.bias_max = torch.nn.parameter.Parameter(torch.zeros(size=(1)).normal_(0, param_init))
+            self.bias_D = torch.nn.parameter.Parameter(torch.zeros(size=(10,)).normal_(0, param_init))
+            self.bias_max = torch.nn.parameter.Parameter(torch.zeros(size=(1,)).normal_(0, param_init))
 
     def init_params(self):
         for m in self.modules():
@@ -66,7 +66,7 @@ class Encoder(nn.Module):
             sent1_f = self.mlp_f(sent1_linear).view(batch_size, -1, self.hidden_size) # bs x len1 x hidden_size
             score1 = torch.bmm(sent1_f, torch.transpose(sent1_f, 1, 2)) # f_{ij} # bs x len1 x len1
             
-            distance = torch.zeros(size=(len1, len1)).fill_(self.bias_max)
+            distance = torch.ones(size=(len1, len1)) * self.bias_max
             for i in range(len1):
                 forward_idxs = (torch.arange(10))[:len1 - i]
                 backward_idxs = i - torch.arange(min(i, 10))
