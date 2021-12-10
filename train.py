@@ -1,4 +1,3 @@
-from pytorch_lightning.accelerators import accelerator
 import torch
 import src
 import argparse
