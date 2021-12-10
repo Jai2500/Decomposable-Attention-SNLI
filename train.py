@@ -80,3 +80,5 @@ trainer.fit(
     model=model,
     datamodule=datamodule
 )
+
+trainer.save_checkpoint(args.model_path + ".ckpt")

@@ -55,6 +55,7 @@ class LitModel(pl.LightningModule):
         source, target, labels = batch['source'], batch['target'], batch['labels']
         log_prob = self(source, target)
         loss = self.criterion(log_prob, labels)
+        self.log("Train Loss", loss.item(), prog_bar=True)
 
         acc = self.acc(torch.exp(log_prob), labels)
         self.log("Train Accuracy", acc.item(), prog_bar=True)
@@ -92,3 +93,13 @@ class LitModel(pl.LightningModule):
                     m.weight.grad.data = m.weight.grad.data * shrinkage
                     m.bias.grad.data = m.bias.grad.data * shrinkage
 
+    def validation_step(self, batch, batch_idx):
+        source, target, labels = batch['source'], batch['target'], batch['labels']
+        log_prob = self(source, target)
+        loss = self.criterion(log_prob, labels)
+        self.log("Validation Loss", loss.item(), prog_bar=True)
+
+        acc = self.acc(torch.exp(log_prob), labels)
+        self.log("Validation Accuracy", acc.item(), prog_bar=True)
+
+        return loss
