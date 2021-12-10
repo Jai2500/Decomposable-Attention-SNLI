@@ -1,44 +1,7 @@
 import torch
+from torch.autograd import backward
 import torch.nn as nn
 import pytorch_lightning as pl
-
-class Encoder(nn.Module):
-    def __init__(self, num_embeddings, embedding_size, hidden_size, param_init, intra_sent_atten=False):
-        super().__init__()
-        
-        self.num_embeddings = num_embeddings
-        self.embedding_size = embedding_size
-        self.hidden_size = hidden_size
-        self.param_init = param_init
-        self.intra_sent_atten = intra_sent_atten
-
-        self.embedding = nn.Embedding(self.num_embeddings, self.embedding_size)
-
-        if self.intra_sent_atten:
-            self.mlp_f = None
-            raise NotImplementedError
-
-        self.input_linear = nn.Linear(self.embedding_size, self.hidden_size, bias=False)
-
-
-    def init_params(self):
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                m.weight.data.normal_(0, self.param_init)
-
-    def forward(self, sent1, sent2):
-        batch_size = sent1.size(0)
-
-        sent1 = self.embedding(sent1)
-        sent2 = self.embedding(sent2)
-
-        sent1 = sent1.view(-1, self.embedding_size)
-        sent2 = sent2.view(-1, self.embedding_size)
-
-        sent1_linear = self.input_linear(sent1).view(batch_size, -1, self.hidden_size)
-        sent2_linear = self.input_linear(sent2).view(batch_size, -1, self.hidden_size)
-
-        return sent1_linear, sent2_linear
 
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim, param_init=None):
@@ -59,6 +22,80 @@ class MLP(nn.Module):
 
     def forward(self, x):
         return self.seq(x)
+
+
+class Encoder(nn.Module):
+    def __init__(self, num_embeddings, embedding_size, hidden_size, param_init, intra_sent_atten=False):
+        super().__init__()
+        
+        self.num_embeddings = num_embeddings
+        self.embedding_size = embedding_size
+        self.hidden_size = hidden_size
+        self.param_init = param_init
+        self.intra_sent_atten = intra_sent_atten
+
+        self.embedding = nn.Embedding(self.num_embeddings, self.embedding_size)
+
+        self.input_linear = nn.Linear(self.embedding_size, self.hidden_size, bias=False)
+
+        if self.intra_sent_atten:
+            self.mlp_f = MLP(self.hidden_size, self.hidden_size, param_init)
+            self.bias_D = torch.nn.parameter.Parameter(torch.zeros(size=(10)).normal_(0, param_init))
+            self.bias_max = torch.nn.parameter.Parameter(torch.zeros(size=(1)).normal_(0, param_init))
+
+    def init_params(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                m.weight.data.normal_(0, self.param_init)
+
+    def forward(self, sent1, sent2):
+        batch_size = sent1.size(0)
+        len1 = sent1.size(1)
+        len2 = sent2.size(1)
+
+        sent1 = self.embedding(sent1)
+        sent2 = self.embedding(sent2)
+
+        sent1 = sent1.view(-1, self.embedding_size)
+        sent2 = sent2.view(-1, self.embedding_size)
+
+        sent1_linear = self.input_linear(sent1)
+        sent2_linear = self.input_linear(sent2)
+
+        if self.intra_sent_atten:
+            sent1_f = self.mlp_f(sent1_linear).view(batch_size, -1, self.hidden_size) # bs x len1 x hidden_size
+            score1 = torch.bmm(sent1_f, torch.transpose(sent1_f, 1, 2)) # f_{ij} # bs x len1 x len1
+            
+            distance = torch.zeros(size=(len1, len1)).fill_(self.bias_max)
+            for i in range(len1):
+                forward_idxs = (torch.arange(10))[:len1 - i]
+                backward_idxs = i - torch.arange(min(i, 10))
+                idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
+                distance[i] = torch.scatter(distance[i], idxs, self.bias_D)
+
+            prob1 = torch.nn.functional.softmax((score1 + distance).view(-1, len1)).view(-1, len1, len1) 
+            sent1_final = torch.bmm(prob1, sent1_linear.view(batch_size, -1, self.hidden_size))
+
+            sent2_f = self.mlp_f(sent2_linear).view(batch_size, -1, self.hidden_size)
+            score2 = torch.bmm(sent2_f, torch.transpose(sent2_f, 1, 2)) # f_{ij}
+
+            distance = torch.zeros(size=(len2, len2)).fill_(self.bias_max)
+            for i in range(len2):
+                forward_idxs = (torch.arange(10))[:len2 - i]
+                backward_idxs = i - torch.arange(min(i, 10))
+                idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
+                distance[i] = torch.scatter(distance[i], idxs, self.bias_D)
+
+            prob2 = torch.nn.functional.softmax((score2 + distance).view(-1, len2)).view(-1, len2, len2) 
+            sent2_final = torch.bmm(prob2, sent2_linear.view(batch_size, -1, self.hidden_size))
+
+            return sent1_final, sent2_final
+
+        else:
+            sent1_linear = sent1_linear.view(batch_size, -1, self.hidden_size)
+            sent2_linear = sent2_linear.view(batch_size, -1, self.hidden_size)
+
+        return sent1_linear, sent2_linear
 
 class Atten(nn.Module):
     def __init__(self, hidden_size, label_size, param_init):
