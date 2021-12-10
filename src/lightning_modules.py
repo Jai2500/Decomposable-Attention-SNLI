@@ -77,11 +77,11 @@ class LitModel(pl.LightningModule):
                     para_norm += m.bias.data.norm() ** 2
 
 
-        for m in self.atten.modules:
+        for m in self.atten.modules():
             if isinstance(m, torch.nn.Linear):
                 grad_norm += m.weight.grad.data.norm() ** 2
                 para_norm += m.weight.data.norm() ** 2
-                if m.bias:
+                if m.bias is not None:
                     grad_norm += m.bias.grad.data.norm() ** 2
                     para_norm += m.bias.data.norm() ** 2
 
