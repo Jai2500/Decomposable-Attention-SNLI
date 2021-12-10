@@ -69,6 +69,7 @@ model = LitModel(
 )
 
 trainer = pl.Trainer(
+    max_epochs=args.epoch,
     gpus=args.gpus,
     accelerator='cpu' if args.gpus == 0 else 'ddp',
     progress_bar_refresh_rate=10,
