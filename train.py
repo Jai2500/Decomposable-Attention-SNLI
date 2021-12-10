@@ -2,10 +2,13 @@ import torch
 import src
 import argparse
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 from src.lightning_modules import LitModel, LitSNLI
 from src.models import Atten, Encoder
 from src.data_models import w2v
+
+from pytorch_lightning.loggers import WandbLogger
 
 
 parser = argparse.ArgumentParser()
@@ -20,7 +23,7 @@ parser.add_argument('--hidden_size', type=int, default=300, help='hidden layer s
 
 parser.add_argument('--epoch', type=int, default=250, help='number of training epochs')
 parser.add_argument('--gpus', type=int, default=0, help='number of gpus to train on. -1 for all gpus')
-parser.add_argument('--val_interval', type=int, default=10, help='interval for checking the validation dataset')
+parser.add_argument('--val_interval', type=int, default=500, help='interval for checking the validation dataset')
 
 parser.add_argument('--optimizer', type=str, default='adagrad', choices=['adam', 'adagrad'])
 parser.add_argument('--lr', type=float, default=0.05, help='learning rate')
@@ -69,12 +72,24 @@ model = LitModel(
     weight_decay=args.weight_decay
 )
 
+wandb_logger = WandbLogger(project="ANLP-Project")
+
+checkpoint_callback = ModelCheckpoint( 
+  monitor='Validation Loss', 
+  dirpath='./saved_models/', 
+  filename='anlp-model-{epoch:02d}',
+  save_top_k = 3,
+  mode='min'
+)
+
 trainer = pl.Trainer(
     max_epochs=args.epoch,
     gpus=args.gpus,
     accelerator='cpu' if args.gpus == 0 else 'ddp',
     progress_bar_refresh_rate=10,
-    val_check_interval=args.val_interval
+    val_check_interval=args.val_interval,
+    logger=wandb_logger,
+    callbacks=[checkpoint_callback]
 )
 
 trainer.fit(

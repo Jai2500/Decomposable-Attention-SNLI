@@ -53,9 +53,8 @@ class LitModel(pl.LightningModule):
             return torch.optim.Adagrad(params, lr=self.lr, weight_decay=self.weight_decay)
 
     def training_step(self, batch, batch_idx):
-        source, target, labels = batch['source'], batch['target'], batch['labels']
+        source, target, labels = batch['source'][0], batch['target'][0], batch['labels'][0]
         log_prob = self(source, target)
-        labels = labels[0][:1]
         loss = self.criterion(log_prob, labels)
         self.log("Train Loss", loss.item(), prog_bar=True)
 
@@ -97,8 +96,7 @@ class LitModel(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         try:
-           source, target, labels = batch['source'], batch['target'], batch['labels']
-           labels = labels[0][:1]
+           source, target, labels = batch['source'][0], batch['target'][0], batch['labels'][0]
            log_prob = self(source, target)
            loss = self.criterion(log_prob, labels)
            self.log("Validation Loss", loss.item(), prog_bar=True)

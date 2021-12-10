@@ -36,8 +36,10 @@ class SNLI(torch.utils.data.Dataset):
         batch = {
             'source': self.source[self.batch_idx[idx]:self.batch_idx[idx] + self.batch_l[idx]][:, :source_len],
             'target': self.target[self.batch_idx[idx]:self.batch_idx[idx] + self.batch_l[idx]][:, :target_len],
-            'labels': self.label[self.batch_idx[idx]:self.batch_idx[idx] + self.batch_l[idx]][:source_len]
+            'labels': self.label[self.batch_idx[idx]:self.batch_idx[idx] + self.batch_l[idx]]
         }
+        #print(batch['source'])
+        #print(len(batch['source']))
 
         return batch
 
