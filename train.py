@@ -73,7 +73,8 @@ model = LitModel(
     weight_decay=args.weight_decay
 )
 
-wandb_logger = WandbLogger(project="ANLP-Project")
+if args.use_wandb:
+    wandb_logger = WandbLogger(project="ANLP-Project")
 
 checkpoint_callback = ModelCheckpoint( 
   monitor='Validation Loss', 
@@ -89,7 +90,7 @@ trainer = pl.Trainer(
     accelerator='cpu' if args.gpus == 0 else 'ddp',
     progress_bar_refresh_rate=10,
     val_check_interval=args.val_interval,
-    logger=wandb_logger,
+    logger=wandb_logger if args.use_wandb else None,
     callbacks=[checkpoint_callback]
 )
 
