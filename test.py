@@ -20,10 +20,12 @@ parser.add_argument('--w2v_file', type=str, default='data/w2v.hdf5', help='pretr
 
 parser.add_argument('--embedding_size', type=int, default=300, help='word embedding size')
 parser.add_argument('--hidden_size', type=int, default=300, help='hidden layer size')
+parser.add_argument('--intra_sent_atten', type=bool, default=False, help='whether to use intra sentence attention')
 
 parser.add_argument('--epoch', type=int, default=250, help='number of training epochs')
 parser.add_argument('--gpus', type=int, default=0, help='number of gpus to train on. -1 for all gpus')
 parser.add_argument('--val_interval', type=int, default=500, help='interval for checking the validation dataset')
+parser.add_argument('--num_workers', type=int, default=0, help='number of workers in the dataloader')
 
 parser.add_argument('--optimizer', type=str, default='adagrad', choices=['adam', 'adagrad'])
 parser.add_argument('--lr', type=float, default=0.05, help='learning rate')
@@ -40,10 +42,11 @@ args = parser.parse_args()
 TRAIN_LBL_SIZE = 3
 
 datamodule = LitSNLI(
-    train_fname=args.train_file,
-    val_fname=args.val_file,
-    test_fname=args.test_file,
-    max_length=args.max_length
+    train_file=args.train_file,
+    val_file=args.val_file,
+    test_file=args.test_file,
+    max_length=args.max_length,
+    n_workers=args.num_workers
 )
 
 word_vecs = w2v(args.w2v_file).word_vecs
@@ -52,7 +55,8 @@ encoder = Encoder(
     num_embeddings=word_vecs.size(0),
     embedding_size=args.embedding_size,
     hidden_size=args.hidden_size,
-    param_init=args.param_init
+    param_init=args.param_init,
+    intra_sent_atten=args.intra_sent_atten,
 )
 
 encoder.embedding.weight.data.copy_(word_vecs)
@@ -70,7 +74,7 @@ model = LitModel(
     max_grad_norm=args.max_grad_norm,
     lr=args.lr,
     optim=args.optimizer,
-    weight_decay=args.weight_decay
+    weight_decay=args.weight_decay,
 )
 
 trainer = pl.Trainer(
@@ -83,6 +87,6 @@ trainer = pl.Trainer(
 trainer.test(
     model=model,
     dataloaders=datamodule,
-    ckpt_path="saved_models_length_42/anlp-model-epoch=59.ckpt",
+    ckpt_path="anlp-model-epoch=87.ckpt",
     verbose=True,
 )
