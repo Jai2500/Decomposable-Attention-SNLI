@@ -38,7 +38,7 @@ parser.add_argument('--param_init', type=float, default=0.01, help='parameter in
 parser.add_argument('--weight_decay', type=float, default=5e-5, help='l2 regularization')
 
 parser.add_argument('--log_dir', type=str, default='logs/', help='log file directory')
-parser.add_argument('--model_path', type=str, default='model', help='path of the model (w/o suffix)')
+parser.add_argument('--model_path', type=str, default='model', help='path of the model')
 parser.add_argument(
     "--use_wandb", action="store_true", help="whether to use wandb for logging"
 )
@@ -48,7 +48,6 @@ parser.add_argument('--test_dataset', type=str, default="test", help='whether to
 args = parser.parse_args()
 TRAIN_LBL_SIZE = 3
 
-print(args)
 datamodule = LitSNLI(
     train_file=args.train_file,
     val_file=args.val_file,
@@ -77,7 +76,7 @@ atten = Atten(
 )
 
 model = LitModel.load_from_checkpoint(
-    "saved_models_test/anlp-model-epoch=66-v1.ckpt",
+    args.model_path,
     encoder=encoder,
     atten=atten,
     max_grad_norm=args.max_grad_norm,
@@ -96,6 +95,6 @@ trainer = pl.Trainer(
 trainer.test(
     model=model,
     dataloaders=datamodule,
-    ckpt_path="anlp-model-epoch=87.ckpt",
+    ckpt_path=args.model_path,
     verbose=True,
 )
