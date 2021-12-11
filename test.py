@@ -41,6 +41,7 @@ parser.add_argument('--test_dataset', type=str, default="test", help='whether to
 args = parser.parse_args()
 TRAIN_LBL_SIZE = 3
 
+print(args)
 datamodule = LitSNLI(
     train_file=args.train_file,
     val_file=args.val_file,
@@ -68,7 +69,8 @@ atten = Atten(
     param_init=args.param_init
 )
 
-model = LitModel(
+model = LitModel.load_from_checkpoint(
+    "saved_models_test/anlp-model-epoch=66-v1.ckpt",
     encoder=encoder,
     atten=atten,
     max_grad_norm=args.max_grad_norm,
