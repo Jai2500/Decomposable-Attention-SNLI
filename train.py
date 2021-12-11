@@ -10,7 +10,6 @@ from src.data_models import w2v
 
 from pytorch_lightning.loggers import WandbLogger
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_file', type=str, default='data/entail-train.hdf5', help='training data file (hdf5)')
 parser.add_argument('--val_file', type=str, default='data/entail-val.hdf5', help='validation data file (hdf5)')
@@ -24,6 +23,7 @@ parser.add_argument('--hidden_size', type=int, default=300, help='hidden layer s
 parser.add_argument('--epoch', type=int, default=250, help='number of training epochs')
 parser.add_argument('--gpus', type=int, default=0, help='number of gpus to train on. -1 for all gpus')
 parser.add_argument('--val_interval', type=int, default=500, help='interval for checking the validation dataset')
+parser.add_argument('--num_workers', type=int, default=0, help='number of workers in the dataloader')
 
 parser.add_argument('--optimizer', type=str, default='adagrad', choices=['adam', 'adagrad'])
 parser.add_argument('--lr', type=float, default=0.05, help='learning rate')
@@ -42,7 +42,8 @@ datamodule = LitSNLI(
     train_fname=args.train_file,
     val_fname=args.val_file,
     test_fname=args.test_file,
-    max_length=args.max_length
+    max_length=args.max_length,
+    n_workers=args.num_workers
 )
 
 word_vecs = w2v(args.w2v_file).word_vecs

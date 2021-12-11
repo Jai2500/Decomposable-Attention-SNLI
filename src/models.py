@@ -77,7 +77,7 @@ class Encoder(nn.Module):
             #     idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
             #     distance[i] = torch.scatter(distance[i], 0, idxs, self.bias_D)
 
-            prob1 = torch.nn.functional.softmax((score1 + distance).view(-1, len1)).view(-1, len1, len1) 
+            prob1 = torch.nn.functional.softmax((score1 + distance).view(-1, len1), dim=1).view(-1, len1, len1) 
             sent1_final = torch.bmm(prob1, sent1_linear.view(batch_size, -1, self.hidden_size))
 
             sent2_f = self.mlp_f(sent2_linear).view(batch_size, -1, self.hidden_size)
@@ -95,7 +95,7 @@ class Encoder(nn.Module):
             diff_constrained = torch.where(diff > self.bias_D.size(0) - 2, self.bias_D.size(0) - 1, diff)
             distance = self.bias_D[diff_constrained]
 
-            prob2 = torch.nn.functional.softmax((score2 + distance).view(-1, len2)).view(-1, len2, len2) 
+            prob2 = torch.nn.functional.softmax((score2 + distance).view(-1, len2), dim=1).view(-1, len2, len2) 
             sent2_final = torch.bmm(prob2, sent2_linear.view(batch_size, -1, self.hidden_size))
 
             return sent1_final, sent2_final
@@ -146,11 +146,11 @@ class Atten(nn.Module):
         f2 = f2.view(-1, len2, self.hidden_size) # batch_size x len2 x hidden_size
 
         score1 = torch.bmm(f1, torch.transpose(f2, 1, 2)) # e_{ij}
-        prob1 = torch.nn.functional.softmax(score1.view(-1, len2)).view(-1, len1, len2)
+        prob1 = torch.nn.functional.softmax(score1.view(-1, len2), dim=1).view(-1, len1, len2)
         
         score2 = torch.transpose(score1.contiguous(), 1, 2) # e_{ji}
         score2 = score2.contiguous()
-        prob2 = torch.nn.functional.softmax(score2.view(-1, len1)).view(-1, len2, len1)
+        prob2 = torch.nn.functional.softmax(score2.view(-1, len1), dim=1).view(-1, len2, len1)
 
 
         sent1_combine = torch.cat([
