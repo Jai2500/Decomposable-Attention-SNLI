@@ -4,7 +4,9 @@ import pytorch_lightning as pl
 
 class MLP(nn.Module):
     '''
-        Multilayer Perceptron.
+        Multilayer Perceptron:
+            Basic MLP with input and output. Applies dropout
+            and ReLU
     '''
     def __init__(self, input_dim, output_dim, param_init=None):
         super().__init__()
