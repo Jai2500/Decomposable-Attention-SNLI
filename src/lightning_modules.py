@@ -7,6 +7,9 @@ from src.models import *
 
 
 class LitSNLI(pl.LightningDataModule):
+    '''
+        Lightning DataModule for the SNLI dataset
+    '''
     def __init__(
         self,
         train_file,
@@ -59,6 +62,9 @@ class LitSNLI(pl.LightningDataModule):
 
 
 class LitModel(pl.LightningModule):
+    '''
+        Lightning Model for the Attention Model
+    '''
     def __init__(self, encoder, atten, max_grad_norm, lr, optim, weight_decay):
         super().__init__()
         self.encoder = encoder
