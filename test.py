@@ -43,8 +43,6 @@ parser.add_argument(
     "--use_wandb", action="store_true", help="whether to use wandb for logging"
 )
 
-parser.add_argument('--test_dataset', type=str, default="test", help='whether to use wandb for logging')
-
 args = parser.parse_args()
 TRAIN_LBL_SIZE = 3
 
