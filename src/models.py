@@ -1,5 +1,4 @@
 import torch
-from torch.autograd import backward
 import torch.nn as nn
 import pytorch_lightning as pl
 
@@ -40,8 +39,8 @@ class Encoder(nn.Module):
 
         if self.intra_sent_atten:
             self.mlp_f = MLP(self.hidden_size, self.hidden_size, param_init)
-            self.bias_D = torch.nn.parameter.Parameter(torch.zeros(size=(10,)).normal_(0, param_init))
-            self.bias_max = torch.nn.parameter.Parameter(torch.zeros(size=(1,)).normal_(0, param_init))
+            self.bias_D = torch.nn.parameter.Parameter(torch.zeros(size=(11,)).normal_(0, param_init))
+            # self.bias_max = torch.nn.parameter.Parameter(torch.zeros(size=(1,)).normal_(0, param_init))
 
     def init_params(self):
         for m in self.modules():
@@ -66,12 +65,17 @@ class Encoder(nn.Module):
             sent1_f = self.mlp_f(sent1_linear).view(batch_size, -1, self.hidden_size) # bs x len1 x hidden_size
             score1 = torch.bmm(sent1_f, torch.transpose(sent1_f, 1, 2)) # f_{ij} # bs x len1 x len1
             
-            distance = torch.ones(size=(len1, len1)) * self.bias_max
-            for i in range(len1):
-                forward_idxs = (torch.arange(10))[:len1 - i]
-                backward_idxs = i - torch.arange(min(i, 10))
-                idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
-                distance[i] = torch.scatter(distance[i], 0, idxs, self.bias_D)
+            arange = torch.arange(len1).unsqueeze(0).repeat(batch_size, 1)
+            diff = torch.abs(arange.unsqueeze(-1) - arange.unsqueeze(1))
+            diff_constrained = torch.where(diff > self.bias_D.size(0) - 2, self.bias_D.size(0) - 1, diff)
+            distance = self.bias_D[diff_constrained]
+
+            # distance = torch.ones(size=(len1, len1)) * self.bias_max
+            # for i in range(len1):
+            #     forward_idxs = (torch.arange(10))[:len1 - i]
+            #     backward_idxs = i - torch.arange(min(i, 10))
+            #     idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
+            #     distance[i] = torch.scatter(distance[i], 0, idxs, self.bias_D)
 
             prob1 = torch.nn.functional.softmax((score1 + distance).view(-1, len1)).view(-1, len1, len1) 
             sent1_final = torch.bmm(prob1, sent1_linear.view(batch_size, -1, self.hidden_size))
@@ -79,12 +83,17 @@ class Encoder(nn.Module):
             sent2_f = self.mlp_f(sent2_linear).view(batch_size, -1, self.hidden_size)
             score2 = torch.bmm(sent2_f, torch.transpose(sent2_f, 1, 2)) # f_{ij}
 
-            distance = torch.ones(size=(len2, len2)) * self.bias_max
-            for i in range(len2):
-                forward_idxs = (torch.arange(10))[:len2 - i]
-                backward_idxs = i - torch.arange(min(i, 10))
-                idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
-                distance[i] = torch.scatter(distance[i], 0, idxs, self.bias_D)
+            # distance = torch.ones(size=(len2, len2)) * self.bias_max
+            # for i in range(len2):
+            #     forward_idxs = (torch.arange(10))[:len2 - i]
+            #     backward_idxs = i - torch.arange(min(i, 10))
+            #     idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
+            #     distance[i] = torch.scatter(distance[i], 0, idxs, self.bias_D)
+
+            arange = torch.arange(len2).unsqueeze(0).repeat(batch_size, 1)
+            diff = torch.abs(arange.unsqueeze(-1) - arange.unsqueeze(1))
+            diff_constrained = torch.where(diff > self.bias_D.size(0) - 2, self.bias_D.size(0) - 1, diff)
+            distance = self.bias_D[diff_constrained]
 
             prob2 = torch.nn.functional.softmax((score2 + distance).view(-1, len2)).view(-1, len2, len2) 
             sent2_final = torch.bmm(prob2, sent2_linear.view(batch_size, -1, self.hidden_size))
