@@ -25,6 +25,10 @@ class LitSNLI(pl.LightningDataModule):
         return torch.utils.data.DataLoader(self.val_dataset, batch_size=1)
 
     def test_dataloader(self):
+        # To test on train dataset
+        #return torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
+
+        # To test on test dataset
         return torch.utils.data.DataLoader(self.test_dataset, batch_size=1)
     
 class LitModel(pl.LightningModule):
@@ -60,6 +64,17 @@ class LitModel(pl.LightningModule):
 
         acc = self.acc(torch.exp(log_prob), labels)
         self.log("Train Accuracy", acc.item(), prog_bar=True)
+
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        source, target, labels = batch['source'][0], batch['target'][0], batch['labels'][0]
+        log_prob = self(source, target)
+        loss = self.criterion(log_prob, labels)
+        self.log("Test Loss", loss.item(), prog_bar=True)
+
+        acc = self.acc(torch.exp(log_prob), labels)
+        self.log("Test Accuracy", acc.item(), prog_bar=True)
 
         return loss
 
