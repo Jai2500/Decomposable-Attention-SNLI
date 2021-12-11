@@ -25,6 +25,7 @@ parser.add_argument('--intra_sent_atten', type=bool, default=False, help='whethe
 parser.add_argument('--epoch', type=int, default=250, help='number of training epochs')
 parser.add_argument('--gpus', type=int, default=0, help='number of gpus to train on. -1 for all gpus')
 parser.add_argument('--val_interval', type=int, default=500, help='interval for checking the validation dataset')
+parser.add_argument('--num_workers', type=int, default=0, help='number of workers in the dataloader')
 
 parser.add_argument('--optimizer', type=str, default='adagrad', choices=['adam', 'adagrad'])
 parser.add_argument('--lr', type=float, default=0.05, help='learning rate')
@@ -45,6 +46,7 @@ datamodule = LitSNLI(
     val_fname=args.val_file,
     test_fname=args.test_file,
     max_length=args.max_length
+    n_workers=args.num_workers
 )
 
 word_vecs = w2v(args.w2v_file).word_vecs
