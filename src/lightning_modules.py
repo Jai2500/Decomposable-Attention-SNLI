@@ -6,12 +6,13 @@ from src.data_models import *
 from src.models import *
 
 class LitSNLI(pl.LightningDataModule):
-    def __init__(self, train_fname, val_fname, test_fname, max_length, train_transforms=None, val_transforms=None, test_transforms=None, dims=None):
+    def __init__(self, train_fname, val_fname, test_fname, max_length, n_workers, train_transforms=None, val_transforms=None, test_transforms=None, dims=None):
         super().__init__(train_transforms=train_transforms, val_transforms=val_transforms, test_transforms=test_transforms, dims=dims)
         self.train_fname = train_fname
         self.val_fname = val_fname
         self.test_fname = test_fname
         self.max_length = max_length
+        self.n_workers = n_workers
 
     def setup(self, stage = None):
         self.train_dataset = SNLI(self.train_fname, self.max_length)
@@ -19,17 +20,17 @@ class LitSNLI(pl.LightningDataModule):
         self.test_dataset = SNLI(self.test_fname, self.max_length)
 
     def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
+        return torch.utils.data.DataLoader(self.train_dataset, batch_size=1, num_workers=self.n_workers)
 
     def val_dataloader(self):
-        return torch.utils.data.DataLoader(self.val_dataset, batch_size=1)
+        return torch.utils.data.DataLoader(self.val_dataset, batch_size=1, num_workers=self.n_workers)
 
     def test_dataloader(self):
         # To test on train dataset
         #return torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
 
         # To test on test dataset
-        return torch.utils.data.DataLoader(self.test_dataset, batch_size=1)
+        return torch.utils.data.DataLoader(self.test_dataset, batch_size=1, num_workers=self.n_workers)
     
 class LitModel(pl.LightningModule):
     def __init__(self, encoder, atten, max_grad_norm, lr, optim, weight_decay):
@@ -86,7 +87,7 @@ class LitModel(pl.LightningModule):
             if isinstance(m, torch.nn.Linear):
                 grad_norm += m.weight.grad.data.norm() ** 2
                 para_norm += m.weight.data.norm() ** 2
-                if m.bias:
+                if m.bias is not None:
                     grad_norm += m.bias.grad.data.norm() ** 2
                     para_norm += m.bias.data.norm() ** 2
 
