@@ -20,7 +20,11 @@ parser.add_argument('--w2v_file', type=str, default='data/w2v.hdf5', help='pretr
 
 parser.add_argument('--embedding_size', type=int, default=300, help='word embedding size')
 parser.add_argument('--hidden_size', type=int, default=300, help='hidden layer size')
-parser.add_argument('--intra_sent_atten', type=bool, default=False, help='whether to use intra sentence attention')
+parser.add_argument(
+    "--intra_sent_atten",
+    action="store_true",
+    help="whether to use intra sentence attention",
+)
 
 parser.add_argument('--epoch', type=int, default=250, help='number of training epochs')
 parser.add_argument('--gpus', type=int, default=0, help='number of gpus to train on. -1 for all gpus')
@@ -35,7 +39,10 @@ parser.add_argument('--weight_decay', type=float, default=5e-5, help='l2 regular
 
 parser.add_argument('--log_dir', type=str, default='logs/', help='log file directory')
 parser.add_argument('--model_path', type=str, default='model', help='path of the model (w/o suffix)')
-parser.add_argument('--use_wandb', type=bool, default=False, help='whether to use wandb for logging')
+parser.add_argument(
+    "--use_wandb", action="store_true", help="whether to use wandb for logging"
+)
+
 parser.add_argument('--test_dataset', type=str, default="test", help='whether to use wandb for logging')
 
 args = parser.parse_args()
