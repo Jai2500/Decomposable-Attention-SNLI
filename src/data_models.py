@@ -13,15 +13,15 @@ class SNLI(torch.utils.data.Dataset):
         assert self.max_length > 0, "Max sentence length cannot be negative"
 
         f = h5py.File(fname, "r")
-        self.source = torch.from_numpy(np.asarray(f["source"])) - 1
-        self.target = torch.from_numpy(np.asarray(f["target"])) - 1
-        self.label = torch.from_numpy(np.asarray(f["label"])) - 1
+        self.source = torch.from_numpy(np.asarray(f["source"])-1) 
+        self.target = torch.from_numpy(np.asarray(f["target"])-1)
+        self.label = torch.from_numpy(np.asarray(f["label"])-1)
         self.label_size = torch.from_numpy(np.asarray(f["label_size"]))
         self.source_l = torch.from_numpy(np.asarray(f["source_l"]))
         self.target_l = torch.from_numpy(
             np.asarray(f["target_l"])
-        )  # max target length of each batch?
-        self.batch_idx = torch.from_numpy(np.array(f["batch_idx"])) - 1
+        )  # max target length of each batch
+        self.batch_idx = torch.from_numpy(np.array(f["batch_idx"])-1)
         self.batch_l = torch.from_numpy(np.array(f["batch_l"]))
 
     def __len__(self):
