@@ -51,7 +51,8 @@ encoder = Encoder(
     num_embeddings=word_vecs.size(0),
     embedding_size=args.embedding_size,
     hidden_size=args.hidden_size,
-    param_init=args.param_init
+    param_init=args.param_init,
+    intra_sent_atten=True,
 )
 
 encoder.embedding.weight.data.copy_(word_vecs)
