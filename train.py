@@ -130,7 +130,6 @@ model = LitModel(
 
 if args.use_wandb:
     wandb_logger = WandbLogger(project="ANLP-Project")
-    wandb_logger.experiment.config.update(args)
 
 checkpoint_callback = ModelCheckpoint(
     monitor="Validation Loss",
