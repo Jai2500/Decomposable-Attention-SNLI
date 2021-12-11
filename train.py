@@ -48,8 +48,7 @@ parser.add_argument(
 parser.add_argument("--hidden_size", type=int, default=300, help="hidden layer size")
 parser.add_argument(
     "--intra_sent_atten",
-    type=bool,
-    default=False,
+    action="store_true",
     help="whether to use intra sentence attention",
 )
 
@@ -89,7 +88,7 @@ parser.add_argument(
     "--model_path", type=str, default="model", help="path of the model (w/o suffix)"
 )
 parser.add_argument(
-    "--use_wandb", type=bool, default=False, help="whether to use wandb for logging"
+    "--use_wandb", action="store_true", help="whether to use wandb for logging"
 )
 
 args = parser.parse_args()
