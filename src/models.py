@@ -3,6 +3,11 @@ import torch.nn as nn
 import pytorch_lightning as pl
 
 class MLP(nn.Module):
+    '''
+        Multilayer Perceptron:
+            Basic MLP with input and output. Applies dropout
+            and ReLU
+    '''
     def __init__(self, input_dim, output_dim, param_init=None):
         super().__init__()
         self.seq = nn.Sequential(
@@ -24,6 +29,12 @@ class MLP(nn.Module):
 
 
 class Encoder(nn.Module):
+    '''
+        Encoder for the input sentences: 
+            Converts the words in the sentences to the 
+            embeddings. Also applies the intra sentence 
+            attention
+    '''
     def __init__(self, num_embeddings, embedding_size, hidden_size, param_init, intra_sent_atten=False):
         super().__init__()
         
@@ -84,6 +95,11 @@ class Encoder(nn.Module):
         return sent1_linear
 
 class Atten(nn.Module):
+    '''
+        Decomposable Attention Module:
+            Applies the decomposable attention between the
+            two sentences and returns the final output.
+    '''
     def __init__(self, hidden_size, label_size, param_init):
         super().__init__()
         
@@ -115,7 +131,8 @@ class Atten(nn.Module):
         len1 = sent1_linear.size(1)
         len2 = sent2_linear.size(1)
 
-        '''Attend'''
+        # Attend
+
         f1 = self.mlp_f(sent1_linear.view(-1, self.hidden_size))
         f2 = self.mlp_f(sent2_linear.view(-1, self.hidden_size))
 
@@ -138,13 +155,14 @@ class Atten(nn.Module):
         ], 2) # batch_size x len2 x (2 * hidden_size)
 
 
-        '''Sum'''
+        # Compare
 
         g1 = self.mlp_g(sent1_combine.view(-1, 2 * self.hidden_size))
         g1 = g1.view(-1, len1, self.hidden_size)
         g2 = self.mlp_g(sent2_combine.view(-1, 2 * self.hidden_size))
         g2 = g2.view(-1, len2, self.hidden_size)
 
+        # Gather
         sent1_output = torch.sum(g1, 1)
         sent2_output = torch.sum(g2, 1)
 
