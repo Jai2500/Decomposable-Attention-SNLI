@@ -19,6 +19,7 @@ parser.add_argument('--w2v_file', type=str, default='data/w2v.hdf5', help='pretr
 
 parser.add_argument('--embedding_size', type=int, default=300, help='word embedding size')
 parser.add_argument('--hidden_size', type=int, default=300, help='hidden layer size')
+parser.add_argument('--intra_sent_atten', type=bool, default=False, help='whether to use intra sentence attention')
 
 parser.add_argument('--epoch', type=int, default=250, help='number of training epochs')
 parser.add_argument('--gpus', type=int, default=0, help='number of gpus to train on. -1 for all gpus')
@@ -53,7 +54,7 @@ encoder = Encoder(
     embedding_size=args.embedding_size,
     hidden_size=args.hidden_size,
     param_init=args.param_init,
-    intra_sent_atten=True,
+    intra_sent_atten=args.intra_sent_atten,
 )
 
 encoder.embedding.weight.data.copy_(word_vecs)
