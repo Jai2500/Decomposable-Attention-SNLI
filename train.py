@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--train_file', type=str, default='data/entail-train.hdf5', help='training data file (hdf5)')
 parser.add_argument('--val_file', type=str, default='data/entail-val.hdf5', help='validation data file (hdf5)')
 parser.add_argument('--test_file', type=str, default='data/entail-test.hdf5', help='test data file (hdf5)')
-parser.add_argument('--max_length', type=int, default=42, help='maximum length of training sentences. -1 means no max length')
+parser.add_argument('--max_length', type=int, default=82, help='maximum length of training sentences. -1 means no max length')
 parser.add_argument('--w2v_file', type=str, default='data/w2v.hdf5', help='pretrained word vectors file (hdf5)')
 
 parser.add_argument('--embedding_size', type=int, default=300, help='word embedding size')
@@ -24,7 +24,7 @@ parser.add_argument('--intra_sent_atten', type=bool, default=False, help='whethe
 parser.add_argument('--epoch', type=int, default=250, help='number of training epochs')
 parser.add_argument('--gpus', type=int, default=0, help='number of gpus to train on. -1 for all gpus')
 parser.add_argument('--val_interval', type=int, default=500, help='interval for checking the validation dataset')
-parser.add_argument('--num_workers', type=int, default=0, help='number of workers in the dataloader')
+parser.add_argument('--num_workers', type=int, default=10, help='number of workers in the dataloader')
 
 parser.add_argument('--optimizer', type=str, default='adagrad', choices=['adam', 'adagrad'])
 parser.add_argument('--lr', type=float, default=0.05, help='learning rate')
@@ -40,9 +40,9 @@ args = parser.parse_args()
 TRAIN_LBL_SIZE = 3
 
 datamodule = LitSNLI(
-    train_fname=args.train_file,
-    val_fname=args.val_file,
-    test_fname=args.test_file,
+    train_file=args.train_file,
+    val_file=args.val_file,
+    test_file=args.test_file,
     max_length=args.max_length,
     n_workers=args.num_workers
 )
@@ -80,7 +80,7 @@ if args.use_wandb:
 
 checkpoint_callback = ModelCheckpoint( 
   monitor='Validation Loss', 
-  dirpath='./saved_models_length_42/', 
+  dirpath='./temp/', 
   filename='anlp-model-{epoch:02d}',
   save_top_k = 3,
   mode='min'
