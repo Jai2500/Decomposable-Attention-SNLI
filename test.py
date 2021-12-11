@@ -41,11 +41,12 @@ parser.add_argument('--test_dataset', type=str, default="test", help='whether to
 args = parser.parse_args()
 TRAIN_LBL_SIZE = 3
 
+print(args)
 datamodule = LitSNLI(
     train_fname=args.train_file,
     val_fname=args.val_file,
     test_fname=args.test_file,
-    max_length=args.max_length
+    max_length=args.max_length,
     n_workers=args.num_workers
 )
 
@@ -68,7 +69,8 @@ atten = Atten(
     param_init=args.param_init
 )
 
-model = LitModel(
+model = LitModel.load_from_checkpoint(
+    "saved_models_test/anlp-model-epoch=66-v1.ckpt",
     encoder=encoder,
     atten=atten,
     max_grad_norm=args.max_grad_norm,
@@ -87,6 +89,6 @@ trainer = pl.Trainer(
 trainer.test(
     model=model,
     dataloaders=datamodule,
-    ckpt_path="saved_models_length_42/anlp-model-epoch=59.ckpt",
+    ckpt_path="saved_models_test/anlp-model-epoch=66-v1.ckpt",
     verbose=True,
 )
