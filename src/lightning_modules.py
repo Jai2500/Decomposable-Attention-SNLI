@@ -73,7 +73,7 @@ class LitModel(pl.LightningModule):
         self.max_grad_norm = max_grad_norm
 
     def forward(self, s1, s2):
-        return self.atten(*self.encoder(s1,s2))
+        return self.atten(self.encoder(s1), self.encoder(s2))
 
     def configure_optimizers(self):
         params = filter(lambda p: p.requires_grad, self.parameters())

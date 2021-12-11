@@ -47,19 +47,15 @@ class Encoder(nn.Module):
             if isinstance(m, nn.Linear):
                 m.weight.data.normal_(0, self.param_init)
 
-    def forward(self, sent1, sent2):
+    def forward(self, sent1):
         batch_size = sent1.size(0)
         len1 = sent1.size(1)
-        len2 = sent2.size(1)
 
         sent1 = self.embedding(sent1)
-        sent2 = self.embedding(sent2)
 
         sent1 = sent1.view(-1, self.embedding_size)
-        sent2 = sent2.view(-1, self.embedding_size)
 
         sent1_linear = self.input_linear(sent1)
-        sent2_linear = self.input_linear(sent2)
 
         if self.intra_sent_atten:
             sent1_f = self.mlp_f(sent1_linear).view(batch_size, -1, self.hidden_size) # bs x len1 x hidden_size
@@ -80,31 +76,12 @@ class Encoder(nn.Module):
             prob1 = torch.nn.functional.softmax((score1 + distance).view(-1, len1), dim=1).view(-1, len1, len1) 
             sent1_final = torch.bmm(prob1, sent1_linear.view(batch_size, -1, self.hidden_size))
 
-            sent2_f = self.mlp_f(sent2_linear).view(batch_size, -1, self.hidden_size)
-            score2 = torch.bmm(sent2_f, torch.transpose(sent2_f, 1, 2)) # f_{ij}
-
-            # distance = torch.ones(size=(len2, len2)) * self.bias_max
-            # for i in range(len2):
-            #     forward_idxs = (torch.arange(10))[:len2 - i]
-            #     backward_idxs = i - torch.arange(min(i, 10))
-            #     idxs = torch.cat([backward_idxs, forward_idxs], dim=0)
-            #     distance[i] = torch.scatter(distance[i], 0, idxs, self.bias_D)
-
-            arange = torch.arange(len2).unsqueeze(0).repeat(batch_size, 1)
-            diff = torch.abs(arange.unsqueeze(-1) - arange.unsqueeze(1))
-            diff_constrained = torch.where(diff > self.bias_D.size(0) - 2, self.bias_D.size(0) - 1, diff)
-            distance = self.bias_D[diff_constrained]
-
-            prob2 = torch.nn.functional.softmax((score2 + distance).view(-1, len2), dim=1).view(-1, len2, len2) 
-            sent2_final = torch.bmm(prob2, sent2_linear.view(batch_size, -1, self.hidden_size))
-
-            return sent1_final, sent2_final
+            return sent1_final
 
         else:
             sent1_linear = sent1_linear.view(batch_size, -1, self.hidden_size)
-            sent2_linear = sent2_linear.view(batch_size, -1, self.hidden_size)
 
-        return sent1_linear, sent2_linear
+        return sent1_linear
 
 class Atten(nn.Module):
     def __init__(self, hidden_size, label_size, param_init):
